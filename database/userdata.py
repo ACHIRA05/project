@@ -1,5 +1,4 @@
 import sqlite3,os
-print('ABS PATH =', os.path.abspath('Userdata.db')) 
 conn = sqlite3.connect('Userdata.db')
 c = conn.cursor()
 

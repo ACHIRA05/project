@@ -104,19 +104,30 @@ ctk.CTkLabel(container, text="เข้าสู่ระบบ",
 
 form = ctk.CTkFrame(container, fg_color="transparent")
 form.pack(padx=28, pady=10, fill="x")
+form.grid_columnconfigure(0, weight=1)
+form.grid_columnconfigure(1, weight=0)
 
 ctk.CTkLabel(form, text="Username", anchor="w",
              font=ctk.CTkFont(size=16), text_color=TEXT_DARK) \
-    .grid(row=0, column=0, sticky="w", padx=(0, 6), pady=(4, 4))
-user_entry = ctk.CTkEntry(form, placeholder_text="กรอกชื่อผู้ใช้", height=40)
-user_entry.grid(row=1, column=0, sticky="we", pady=(0, 12))
-form.grid_columnconfigure(0, weight=1)
+    .grid(row=0, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(4, 4))
+
+user_row = ctk.CTkFrame(form, fg_color="transparent")
+user_row.grid(row=1, column=0, columnspan=2, sticky="we", pady=(0, 12))
+user_row.grid_columnconfigure(1, weight=1)
+ctk.CTkLabel(user_row, text="👤", width=26).grid(row=0, column=0, padx=(0, 8))
+user_entry = ctk.CTkEntry(user_row, placeholder_text="กรอกชื่อผู้ใช้", height=40)
+user_entry.grid(row=0, column=1, sticky="we")
 
 ctk.CTkLabel(form, text="Password", anchor="w",
              font=ctk.CTkFont(size=16), text_color=TEXT_DARK) \
-    .grid(row=2, column=0, sticky="w", padx=(0, 6), pady=(6, 4))
-pwd_entry = ctk.CTkEntry(form, placeholder_text="กรอกรหัสผ่าน", height=40)
-pwd_entry.grid(row=3, column=0, sticky="we", pady=(0, 8))
+    .grid(row=2, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(6, 4))
+
+pwd_row = ctk.CTkFrame(form, fg_color="transparent")
+pwd_row.grid(row=3, column=0, columnspan=2, sticky="we", pady=(0, 8))
+pwd_row.grid_columnconfigure(1, weight=1)
+ctk.CTkLabel(pwd_row, text="🔒", width=26).grid(row=0, column=0, padx=(0, 8))
+pwd_entry = ctk.CTkEntry(pwd_row, placeholder_text="กรอกรหัสผ่าน", height=40)
+pwd_entry.grid(row=0, column=1, sticky="we", padx=(0, 8))
 
 masked = BooleanVar(value=True)
 def _apply_mask(*_):
@@ -128,17 +139,20 @@ def _toggle():
 pwd_entry.bind("<KeyRelease>", _apply_mask)
 pwd_entry.bind("<FocusOut>", _apply_mask)
 
-toggle_btn = ctk.CTkButton(form, text="แสดง", width=64, height=34,
+toggle_btn = ctk.CTkButton(pwd_row, text="แสดง", width=64, height=34,
                            fg_color=PURPLE_ACCENT, hover_color=PURPLE_PRIMARY,
                            command=_toggle)
-toggle_btn.grid(row=3, column=1, padx=(8, 0))
+toggle_btn.grid(row=0, column=2)
 
 links = ctk.CTkFrame(container, fg_color="transparent")
 links.pack(fill="x", padx=28, pady=(8, 0))
 
 def _go_register():
+    args = [sys.executable, r"C:\Python\project\page\register.py"]
+    if not _fullscreen_state["value"]:
+        args.append("--windowed")
     Login.destroy()
-    subprocess.Popen([sys.executable, r"C:\Python\project\page\register.py"])
+    subprocess.Popen(args)
 def _go_forgot():
     Login.destroy()
     subprocess.Popen([sys.executable, r"C:\Python\project\page\forgot.py"])
@@ -221,6 +235,58 @@ def layout_panel(final=False):
     canvas.itemconfigure(container_win, width=inner_w, height=inner_h)
 
 
+
+# ---------- Fullscreen toggle (F11 / ESC) ----------
+_fullscreen_state = {"value": False, "geometry": None}
+
+def _apply_layout_later():
+    # re-run panel layout after switching fullscreen state
+    Login.after(20, lambda: layout_panel(final=True))
+
+def _enter_fullscreen():
+    if _fullscreen_state["value"]:
+        return
+    _fullscreen_state["value"] = True
+    _fullscreen_state["geometry"] = Login.winfo_geometry()
+    try:
+        Login.state("zoomed")
+    except tk.TclError:
+        pass
+    Login.attributes("-fullscreen", True)
+    Login.geometry(f"{Login.winfo_screenwidth()}x{Login.winfo_screenheight()}+0+0")
+    _apply_layout_later()
+
+def _leave_fullscreen():
+    if not _fullscreen_state["value"]:
+        return
+    _fullscreen_state["value"] = False
+    Login.attributes("-fullscreen", False)
+    try:
+        Login.state("normal")
+    except tk.TclError:
+        pass
+    if _fullscreen_state["geometry"]:
+        Login.geometry(_fullscreen_state["geometry"])
+    _apply_layout_later()
+
+def _toggle_fullscreen(event=None):
+    if _fullscreen_state["value"]:
+        _leave_fullscreen()
+    else:
+        _enter_fullscreen()
+    return "break"
+
+def _exit_fullscreen(event=None):
+    _leave_fullscreen()
+    return "break"
+
+Login.bind("<F11>", _toggle_fullscreen)
+Login.bind("<Escape>", _exit_fullscreen)
+
+_force_full = "--start-fullscreen" in sys.argv
+_want_windowed = "--windowed" in sys.argv
+if _force_full or not _want_windowed:
+    Login.after(0, _enter_fullscreen)
 
 # ---------- Resize Optimization (Debounce + Cache) ----------
 
