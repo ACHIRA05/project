@@ -16,7 +16,7 @@ BG_SOFT        = "#F7F5FF"
 TEXT_DARK      = "#2F2A44"
 
 # ---- Perf tuning ----
-RESIZE_DELAY = 90          # ms (60-120 กำลังดี)
+RESIZE_DELAY = 60        # ms (60-120 กำลังดี)
 PANEL_SUPERSAMPLE = 2      # เดิม 4 -> 2 เร็วขึ้นมาก
 SIZE_STEP = 2              # ปัดขนาดให้เป็น step ช่วย cache ติดง่ายขึ้น
 
