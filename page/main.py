@@ -18,10 +18,20 @@ PURPLE_ACCENT  = "#B388FF"
 BG_SOFT        = "#F7F5FF"   
 TEXT_DARK      = "#2F2A44"
 
+# ---- Perf tuning ---
+RESIZE_DELAY = 60    
+PANEL_SUPERSAMPLE = 2     
+SIZE_STEP = 2              
+
+_bg_cache = {}             # {(w,h): PhotoImage}
+_panel_cache = {}  
 # ---------- หน้าต่างหลัก ----------
 main = ctk.CTk()
 main.title("Purple Album — ร้านค้า")
 main.geometry("900x600+3500")
 main.minsize(800, 520)
 main.configure(fg_color=BG_SOFT)
+
+
 main.mainloop()
+
