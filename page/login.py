@@ -165,7 +165,7 @@ ctk.CTkLabel(container, image=logo_ctk, text="").pack(pady=(18, 6))
 
 ctk.CTkLabel(container, text="เข้าสู่ระบบ",
 # สร้าง Label ข้อความหัวเรื่อง (ข้อความเพี้ยนเพราะ encoding)
-             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+             font=ctk.CTkFont(family="JasmineUPC", size=30, weight="bold"),
              # กำหนดฟอนต์ Segoe UI ขนาด 22 และน้ำหนัก bold
              text_color=PURPLE_PRIMARY).pack(pady=(0, 8))
              # ตั้งสีข้อความของหัวเรื่องเป็น PURPLE_PRIMARY แล้ว pack
@@ -179,12 +179,12 @@ form.grid_columnconfigure(0, weight=1)
 form.grid_columnconfigure(1, weight=0)
 # กำหนดให้คอลัมน์ 1 ของ form ไม่มีการขยายเพิ่ม
 
-ctk.CTkLabel(form, text="Username", anchor="w",
-# สร้าง Label คำว่า Username และใช้ backslash ต่อบรรทัดคำสั่ง
-             font=ctk.CTkFont(size=16), text_color=TEXT_DARK) \
-             # ระบุฟอนต์และสีข้อความของ Label ต่อจากบรรทัดก่อน
-    .grid(row=0, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(4, 4))
-    # จัดวาง Label ด้วย grid ที่แถว 0 และคอลัมน์ 0-1
+username_label = ctk.CTkLabel(form, text="Username", anchor="w",
+                              font=ctk.CTkFont(size=16), text_color=TEXT_DARK)
+# สร้าง Label ของช่อง Username พร้อมฟอนต์ขนาด 16 และสีข้อความโทนเข้ม
+username_label.grid(row=0, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(4, 4))
+# วาง Label Username ไว้แถว 0 คอลัมน์ 0-1 ติดซ้ายและเว้นระยะเล็กน้อย
+
 
 user_row = ctk.CTkFrame(form, fg_color="transparent")
 # สร้างเฟรม user_row เพื่อวางไอคอนและช่อง username
@@ -199,12 +199,12 @@ user_entry = ctk.CTkEntry(user_row, placeholder_text="กรอกชื่อ�
 user_entry.grid(row=0, column=1, sticky="we")
 # จัดวางช่องกรอก username ให้ยืดเต็มคอลัมน์
 
-ctk.CTkLabel(form, text="Password", anchor="w",
-# สร้าง Label คำว่า Password พร้อมตั้ง anchor ชิดซ้าย
-             font=ctk.CTkFont(size=16), text_color=TEXT_DARK) \
-             # ระบุฟอนต์และสีของ Label ต่อจากบรรทัดก่อน
-    .grid(row=2, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(6, 4))
-    # จัดวาง Label Password ใน grid แถว 2
+password_label = ctk.CTkLabel(form, text="Password", anchor="w",
+                              font=ctk.CTkFont(size=16), text_color=TEXT_DARK)
+# สร้าง Label ของช่อง Password พร้อมฟอนต์เดียวกันและชิดซ้าย
+password_label.grid(row=2, column=0, columnspan=2, sticky="w", padx=(0, 6), pady=(6, 4))
+# วาง Label Password ที่แถว 2 เหนือช่องรหัสผ่าน
+
 
 pwd_row = ctk.CTkFrame(form, fg_color="transparent")
 # สร้างเฟรม pwd_row สำหรับส่วนรหัสผ่าน
@@ -313,7 +313,7 @@ def on_login():
         # แสดง messagebox แจ้งผลสำเร็จพร้อมระบุชื่อผู้ใช้ (ข้อความเพี้ยน)
         Login.destroy()
         # ปิดหน้าต่าง Login เพื่อเตรียมเปิดหน้าหลัก
-        subprocess.Popen([sys.executable, r"C:\Python\project\page\main.py"])
+        subprocess.Popen([sys.executable, r"C:\Python\project\page\main.py",u])
         # เปิด main.py ผ่าน subprocess เพื่อเข้าสู่หน้าใช้งานหลัก
     else:
     # กรณีไม่พบข้อมูลผู้ใช้ให้เข้าสู่เงื่อนไข else
