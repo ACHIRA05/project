@@ -92,10 +92,10 @@ if os.path.exists(logo_path):
     ctk.CTkLabel(container, image=logo_img, text="").pack(pady=(18, 6))
 else:
     ctk.CTkLabel(container, text="PURPLE\nALBUM",
-                 font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(18, 6))
+                 font=ctk.CTkFont(family="Mitr", size=20)).pack(pady=(18, 6))
 
 ctk.CTkLabel(container, text="ลืมรหัสผ่าน",
-             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+             font=ctk.CTkFont(family="Mitr", size=22),
              text_color=PURPLE_PRIMARY).pack(pady=(0, 8))
 
 # ---------- FORM ----------
@@ -108,7 +108,7 @@ def make_input(label, placeholder, emoji="", show=None, first=False):
     block.pack(fill="x", pady=pad)
 
     ctk.CTkLabel(block, text=label, anchor="w",
-                 font=ctk.CTkFont(size=16), text_color=TEXT_DARK)\
+                 font=ctk.CTkFont(family="Mitr", size=16), text_color=TEXT_DARK,)\
         .pack(anchor="w", pady=(0, 4))
 
     row = ctk.CTkFrame(block, fg_color="transparent")
@@ -116,7 +116,8 @@ def make_input(label, placeholder, emoji="", show=None, first=False):
     row.grid_columnconfigure(1, weight=1)
 
     ctk.CTkLabel(row, text=emoji, width=26).grid(row=0, column=0, padx=(0, 8))
-    entry = ctk.CTkEntry(row, placeholder_text=placeholder, height=40, show=show)
+    entry = ctk.CTkEntry(row, placeholder_text=placeholder, height=40, show=show,
+                         font=ctk.CTkFont(family="Mitr"))
     entry.grid(row=0, column=1, sticky="we")
     return entry
 
@@ -128,7 +129,7 @@ confirm_entry = make_input("Confirm Password", "ยืนยันรหัส�
 ctk.CTkLabel(container,
              text="กรุณากรอกข้อมูลให้ตรงกับที่ลงทะเบียนไว้ ระบบจะตั้งรหัสใหม่ให้คุณโดยใช้รหัสที่กรอกด้านบน",
              text_color=TEXT_DARK, wraplength=520,
-             font=ctk.CTkFont(size=14)).pack(padx=28, pady=(4, 12))
+             font=ctk.CTkFont(family="Mitr", size=14)).pack(padx=28, pady=(4, 12))
 
 # ---------- BUTTONS ----------
 buttons = ctk.CTkFrame(container, fg_color="transparent")
@@ -180,13 +181,13 @@ def reset_password():
 ctk.CTkButton(buttons, text="ย้อนกลับ", text_color="white",
               height=46, corner_radius=22,
               fg_color="#B388FF", hover_color="#8D50F7",
-              command=back_to_login)\
+              command=back_to_login,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=0, padx=4, sticky="e", ipadx=12)
 
 ctk.CTkButton(buttons, text="รีเซ็ตรหัสผ่าน", text_color="white",
               height=46, corner_radius=22,
               fg_color="#B388FF", hover_color="#8D50F7",
-              command=reset_password)\
+              command=reset_password,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=1, padx=4, sticky="w", ipadx=12)
 
 # ---------- Layout handling ----------

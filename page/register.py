@@ -108,10 +108,10 @@ if os.path.exists(logo_path):
                             dark_image=Image.open(logo_path), size=(100,100))
     ctk.CTkLabel(container, image=logo_img, text="").pack(pady=(8,6))
 else:
-    ctk.CTkLabel(container, text="PURPLE\nALBUM", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(16,6))
+    ctk.CTkLabel(container, text="PURPLE\nALBUM", font=ctk.CTkFont(family="Mitr", size=20)).pack(pady=(16,6))
 
 ctk.CTkLabel(container, text="ลงทะเบียน",
-             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+             font=ctk.CTkFont(family="Mitr", size=22),
              text_color=PURPLE_PRIMARY).pack(pady=4)
 
 # ---------- FORM 2 COLUMNS ----------
@@ -133,7 +133,7 @@ def make_input(parent, label, placeholder, emoji="", show=None, first=False):
     block.pack(fill="x", pady=(pad_top, 0))
 
     ctk.CTkLabel(block, text=label, anchor="w",
-                 font=ctk.CTkFont(size=16), text_color=TEXT_DARK)\
+                 font=ctk.CTkFont(family="Mitr", size=16), text_color=TEXT_DARK)\
         .pack(anchor="w", pady=(0,4))
 
     rowbox = ctk.CTkFrame(block, fg_color="transparent")
@@ -157,11 +157,11 @@ img_box = ctk.CTkFrame(right_col, fg_color="#F1E9FF", corner_radius=12)
 img_box.pack(fill="x", pady=(0,18))
 
 ctk.CTkLabel(img_box, text="🖼️ รูปโปรไฟล์", anchor="w",
-             font=ctk.CTkFont(size=16), text_color=TEXT_DARK)\
+             font=ctk.CTkFont(family="Mitr", size=16), text_color=TEXT_DARK)\
     .pack(anchor="w", padx=12, pady=(12,6))
 
 preview_label = ctk.CTkLabel(img_box, text="(ยังไม่มีรูป)", width=PROFILE_IMG_SIZE, height=PROFILE_IMG_SIZE,
-                             fg_color="white", corner_radius=10)
+                             fg_color="white", corner_radius=10,font=ctk.CTkFont(family="Mitr"))
 preview_label.pack(padx=12, pady=6)
 
 image_bytes_cache = {"data": None}
@@ -183,7 +183,7 @@ def choose_image():
     image_bytes_cache["data"] = buf.getvalue()
 
 ctk.CTkButton(img_box, text="เลือกไฟล์รูป", command=choose_image, height=36,
-              fg_color="#B388FF", hover_color="#8D50F7")\
+              fg_color="#B388FF", hover_color="#8D50F7",font=ctk.CTkFont(family="Mitr"))\
     .pack(padx=12, pady=(6,12), fill="x")
 
 # ---------- BUTTONS ----------
@@ -242,12 +242,12 @@ def backtolog():
 
 ctk.CTkButton(links_frame, text="ย้อนกลับ", text_color="white",
               height=46, corner_radius=22, fg_color="#B388FF",
-              hover_color="#8D50F7", command=backtolog)\
+              hover_color="#8D50F7", command=backtolog,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=0, padx=4, sticky="e", ipadx=12)
 
 ctk.CTkButton(links_frame, text="สมัครสมาชิก", text_color="white",
               height=46, corner_radius=22, fg_color="#B388FF",
-              hover_color="#8D50F7", command=check)\
+              hover_color="#8D50F7", command=check,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=1, padx=4, sticky="w", ipadx=12)
 
 # ---------- Layout handling ----------
