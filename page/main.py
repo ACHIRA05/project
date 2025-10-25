@@ -10,6 +10,20 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from database import sell_db
+
+BASE_DIR = PROJECT_ROOT
+ALBUM_DATA = os.path.join(BASE_DIR, "database", "album_data.db")
+
+# เริ่มระบบตะกร้า (จะสร้าง Sell_item.db และตารางให้เอง)
+sell_db.init(
+    sell_db_path=os.path.join(BASE_DIR, "database", "Sell_item.db"),
+    album_db_path=ALBUM_DATA)
+
 from database import sell_db
 
 #พาธฐานของโปรเจ็กต์
@@ -144,6 +158,7 @@ main.title("Purple Album — ร้านค้า")
 main.geometry("1000x600")
 main.configure(fg_color="#dac5ff")
 
+
 # ตัวแปรเก็บขนาด panel ล่าสุด
 MARGIN_W = 40
 MARGIN_H = 80
@@ -268,79 +283,9 @@ avatar_ctk = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(50, 50)
 avatar_label = ctk.CTkLabel(hearder, image=avatar_ctk, text="", fg_color="transparent")
 avatar_label.pack(side="left", padx=(0, 0), pady=8)
 
-# ตะกร้าสินค้า
-_cart_badge_var = tk.StringVar(value="0")
 
-# อัพเดตจำนวนสินค้าในตะกร้า
-def update_cart_badge():
-    _cart_badge_var.set(str(sell_db.count(login_username)))
-    try:
-        if cart_total_label.winfo_exists():
-            cart_total_label.configure(text=f"รวมทั้งหมด: {sell_db.total(login_username):,.0f} บาท")
-    except Exception:
-        pass
 
-# เปิดหน้าตะกร้าสินค้า
-def open_cart_window():
-    win = ctk.CTkToplevel(main)
-    win.title("ตะกร้าสินค้า"); win.geometry("620x500")
-    body = ctk.CTkScrollableFrame(win, fg_color="#faf7ff")
-    body.pack(fill="both", expand=True, padx=12, pady=12)
 
-    for album_id, title, price, qty, cover in sell_db.items(login_username):
-        row = ctk.CTkFrame(body, fg_color="white", corner_radius=10)
-        row.pack(fill="x", pady=6)
-
-        cover_real = resolve_cover_path(cover)
-        img = load_image(cover_real, size=(60,60))
-        ctk.CTkLabel(row, image=img, text="").pack(side="left", padx=8, pady=8)
-
-        info = ctk.CTkFrame(row, fg_color="white"); info.pack(side="left", fill="x", expand=True, padx=4, pady=8)
-        ctk.CTkLabel(info, text=title, font=("Mitr", 16, "bold")).pack(anchor="w")
-        ctk.CTkLabel(info, text=f"{price:,.0f} บาท x {qty} = {price*qty:,.0f} บาท", text_color="#555").pack(anchor="w")
-
-        ctrls = ctk.CTkFrame(row, fg_color="white"); ctrls.pack(side="right", padx=8, pady=8)
-        ctk.CTkButton(ctrls, text="-", width=32,
-                      command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q-1),
-                                                         win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=2)
-        ctk.CTkButton(ctrls, text="+", width=32,
-                      command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q+1),
-                                                         win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=2)
-        ctk.CTkButton(ctrls, text="ลบ", width=42, fg_color="#e86", hover_color="#d55",
-                      command=lambda a=album_id: (sell_db.remove(login_username, a),
-                                                  win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=6)
-
-    # สรุปราคา + ปุ่ม
-    global cart_total_label
-    cart_total_label = ctk.CTkLabel(win, text=f"รวมทั้งหมด: {sell_db.total(login_username):,.0f} บาท",
-                                    font=("Mitr", 18, "bold"))
-    cart_total_label.pack(anchor="e", padx=16)
-
-    btns = ctk.CTkFrame(win, fg_color="transparent"); btns.pack(fill="x", padx=12, pady=(6,12))
-    ctk.CTkButton(btns, text="ล้างตะกร้า", fg_color="#ccc", text_color="black",
-                  command=lambda: (sell_db.clear(login_username), win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left")
-
-    def do_checkout():
-        order_id = sell_db.checkout(login_username)
-        if order_id is None:
-            print("ตะกร้าว่าง")
-        else:
-            print(f"✅ สร้างออเดอร์ #{order_id}")
-        win.destroy(); update_cart_badge()
-
-    ctk.CTkButton(btns, text="เช็คเอาต์ (จำลอง)", fg_color="#6c3",
-                  command=do_checkout).pack(side="right")
-
-# ปุ่มเปิดตะกร้า + badge
-cart_btn = ctk.CTkButton(hearder, text="ตะกร้า", fg_color="#b868e6",
-                         hover_color="#9a79f7", font=("Mitr", 20),
-                         command=open_cart_window)
-cart_btn.pack(side="left", padx=(10, 10), pady=8)
-
-cart_badge = ctk.CTkLabel(hearder, textvariable=_cart_badge_var,
-                          fg_color="#ff7bd4", text_color="white",
-                          width=28, corner_radius=14)
-cart_badge.pack(side="left", padx=(0, 40))
     
 # container สำหรับแท็บ artist
 tap_artist = ctk.CTkFrame(main, fg_color="#dac5ff", height=70)
@@ -445,6 +390,7 @@ def resolve_cover_path(p: str) -> str:
                     pass
     return ""
 
+# ข้อมูลศิลปิน (รูป+ข้อความ)
 def artist_info(group_name: str):
     # กล่อง Header
     head = ctk.CTkFrame(album_area, fg_color="#f7f5ff", corner_radius=12)
@@ -477,9 +423,7 @@ def refresh_content(keyword: str = ""):
     # 2) อัลบั้มค่อยตามมา (จะใส่ load_albums() ทีหลังได้)
     # load_albums(keyword)   # ถ้ายังไม่มีฟังก์ชันนี้ ให้คอมเมนต์ไว้ก่อน
 
-
-
-    
+# การ์ดอัลบั้มแต่ละใบ
 def add_album_card(id_, title, price, stock, cover_path):
     # การ์ดหลัก
     card = ctk.CTkFrame(album_area, fg_color="white", corner_radius=16)
@@ -517,6 +461,8 @@ def add_album_card(id_, title, price, stock, cover_path):
 
 
 
+
+
 #โหลดอัลบั้มของวงนั้น   
 def load_albums_only(keyword: str = ""):
     rows = qall("""
@@ -537,16 +483,17 @@ def load_albums_only(keyword: str = ""):
         add_album_card(id_, title, price, stock, cover)
 
 
-
+#หน้าต่างรายการสินค้า
 def add_section_header(group_name: str):
     hdr = ctk.CTkLabel(
         album_area, 
         text=f"— {group_name} —", 
-        font=("Mitr", 18, "bold"),
+        font=("Mitr", 18),
         text_color="#6543a9"
     )
     hdr.pack(anchor="w", pady=(12, 4))
 
+# โหลดอัลบั้มทั้งหมดตามคำค้นหา
 def load_albums_all(keyword: str):
     kw = keyword.strip()
     if not kw:
@@ -572,7 +519,153 @@ def load_albums_all(keyword: str):
             last_group = gname
         title = f"{name} ({ver})" if ver else name
         add_album_card(id_, title, price, stock, cover)
+        
+# เปิดหน้าตะกร้าสินค้า
+def open_cart_window():
+    win = ctk.CTkToplevel(main)
+    win.title("ตะกร้าสินค้า")
+    win.geometry("720x560+930+200")
 
+    # modal + อยู่หน้าเสมอ
+    try:
+        win.transient(main)
+        win.grab_set()
+    except Exception:
+        pass
+    win.lift(); win.focus_force()
+    win.attributes("-topmost", True)
+    win.after(300, lambda: win.attributes("-topmost", False))
+
+    # ---------- กล่องโค้งภายในให้ดูไม่เหลี่ยม ----------
+    shell = ctk.CTkFrame(win, fg_color="#f3ecff", corner_radius=20)
+    shell.pack(fill="both", expand=True, padx=14, pady=14)
+
+    header = ctk.CTkFrame(shell, fg_color="transparent")
+    header.pack(fill="x", padx=14, pady=(14, 6))
+
+    ctk.CTkLabel(
+        header, text="ตะกร้าสินค้า",
+        font=("Mitr", 20)
+    ).pack(side="left")
+
+    ctk.CTkLabel(
+        header, text="โปรโมชั่น: ซื้อครบ 3 อัลบั้ม ลด 20% 🔥",
+        text_color="#7a3cff", font=("Mitr", 16)
+    ).pack(side="right")
+
+    # เนื้อหาเลื่อน
+    body = ctk.CTkScrollableFrame(shell, fg_color="white", corner_radius=14)
+    body.pack(fill="both", expand=True, padx=14, pady=(0, 8))
+
+    # เติมรายการอัลบั้มในตะกร้า
+    items = sell_db.items(login_username)
+    if not items:
+        ctk.CTkLabel(body, text="ยังไม่มีสินค้าในตะกร้า", text_color="gray",font=("Mitr", 16)).pack(pady=20)
+    else:
+        for album_id, title, price, qty, cover in items:
+            row = ctk.CTkFrame(body, fg_color="white")
+            row.pack(fill="x", pady=6, padx=8)
+
+            # ภาพปก
+            cover_real = resolve_cover_path(cover)
+            img = load_image(cover_real, size=(60,60))
+            ctk.CTkLabel(row, image=img, text="").pack(side="left", padx=8, pady=8)
+
+            # ข้อมูล
+            info = ctk.CTkFrame(row, fg_color="white")
+            info.pack(side="left", fill="x", expand=True, padx=4, pady=8)
+            ctk.CTkLabel(info, text=title, font=("Mitr", 16)).pack(anchor="w")
+            ctk.CTkLabel(info, text=f"{price:,.0f} บาท x {qty} = {price*qty:,.0f} บาท",
+                         text_color="#555").pack(anchor="w")
+
+            # ปุ่มจำนวน
+            ctrls = ctk.CTkFrame(row, fg_color="white")
+            ctrls.pack(side="right", padx=8, pady=8)
+            ctk.CTkButton(ctrls, text="-", width=34,
+                command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q-1),
+                                                   win.destroy(), open_cart_window(), update_cart_badge())
+            ).pack(side="left", padx=2)
+            ctk.CTkButton(ctrls, text="+", width=34,
+                command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q+1),
+                                                   win.destroy(), open_cart_window(), update_cart_badge())
+            ).pack(side="left", padx=2)
+            ctk.CTkButton(ctrls, text="ลบ", width=46, fg_color="#e86", hover_color="#d55",
+                command=lambda a=album_id: (sell_db.remove(login_username, a),
+                                            win.destroy(), open_cart_window(), update_cart_badge())
+            ).pack(side="left", padx=6)
+
+    # สรุปราคา + ปุ่มล่าง
+    calc = sell_db.pricing(login_username)  # ต้องมีฟังก์ชันนี้ใน sell_db ตามที่ทำไว้ก่อนหน้า
+
+    footer = ctk.CTkFrame(shell, fg_color="transparent")
+    footer.pack(fill="x", padx=14, pady=(6, 14))
+
+    # ข้อความสรุปชิดขวา
+    right = ctk.CTkFrame(footer, fg_color="transparent")
+    right.pack(side="right")
+
+    ctk.CTkLabel(right, text=f"สินค้ารวม: {calc['item_count']} ชิ้น", font=("Mitr", 14)).pack(anchor="e")
+    ctk.CTkLabel(right, text=f"ราคารวม (Subtotal): {calc['subtotal']:,.0f} บาท", font=("Mitr", 14)).pack(anchor="e")
+    if calc["discount_rate"] > 0:
+        ctk.CTkLabel(
+            right,
+            text=f"ส่วนลด {int(calc['discount_rate']*100)}%: -{calc['discount']:,.0f} บาท",
+            text_color="#2ba84a", font=("Mitr", 14)
+        ).pack(anchor="e")
+
+    global cart_total_label
+    cart_total_label = ctk.CTkLabel(
+        right, text=f"ยอดสุทธิ: {calc['total']:,.0f} บาท", font=("Mitr", 18)
+    )
+    cart_total_label.pack(anchor="e", pady=(2, 0))
+
+    btns = ctk.CTkFrame(footer, fg_color="transparent")
+    btns.pack(side="left")
+
+    ctk.CTkButton(btns, text="ล้างตะกร้า", fg_color="#ccc", text_color="black",ctk_font=("Mitr", 14),
+        command=lambda: (sell_db.clear(login_username), win.destroy(), open_cart_window(), update_cart_badge())
+    ).pack(side="left", padx=(0,6))
+       
+# ตะกร้าสินค้า
+cart_badge_var = tk.StringVar(value="0")
+
+def update_cart_badge():
+    cart_badge_var.set(str(sell_db.count(login_username)))
+    try:
+        if cart_total_label.winfo_exists():
+            cart_total_label.configure(text=f"รวมทั้งหมด: {sell_db.total(login_username):,.0f} บาท")
+    except Exception:
+        pass
+
+# ปุ่มลอยตะกร้าสินค้า
+cart_fab = ctk.CTkButton(
+    main, text="ตะกร้า",
+    fg_color="#b868e6", hover_color="#9a79f7",
+    font=("Mitr", 18),
+    corner_radius=24, width=140, height=48,
+    command=lambda: (open_cart_window(), update_cart_badge())
+)
+# ย้ายขึ้นมาจากขอบล่าง (ปรับ y ได้ตามชอบ)
+cart_fab.place(relx=1.0, rely=1.0, x=-45, y=-60, anchor="se")
+
+cart_badge = ctk.CTkLabel(
+    main, textvariable=cart_badge_var,
+    fg_color="#ff7bd4", text_color="white",
+    corner_radius=999, width=26, height=26
+)
+# วางทับมุมขวาบนของปุ่ม
+cart_badge.place(relx=1.0, rely=1.0, x=-24-6, y=-80-34, anchor="se")
+
+# ให้ลอยอยู่บนสุดเสมอ (กันโดนบังเวลา resize/เปลี่ยนหน้า)
+def _raise_cart_fab(_=None):
+    try:
+        cart_fab.lift()
+        cart_badge.lift()
+    except Exception:
+        pass
+
+main.bind("<Configure>", _raise_cart_fab)
+main.after(100, lambda: (update_cart_badge(), _raise_cart_fab()))
 
 # โหลดหน้าวงแรกตอนเปิดแอป
 def refresh_content(keyword: str = ""):
@@ -587,5 +680,5 @@ def refresh_content(keyword: str = ""):
 # --- โหลดคอนเทนต์ครั้งแรกตอนเปิดแอป ---
 taps.set(GROUPS[0])
 change_group(GROUPS[0])        
-
+main.after(100, update_cart_badge)
 main.mainloop()
