@@ -3,7 +3,7 @@ from PIL import Image , ImageOps
 import os, sqlite3, io , sys
 import tkinter as tk
 import glob
-import os, sys
+import os, sys ,subprocess
 
 # ทำให้ import 'database' ได้
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -244,6 +244,49 @@ if _force_full or not _want_windowed:
 hearder=ctk.CTkFrame(main, fg_color="#b868e6", height=70,corner_radius=0)
 hearder.pack(fill="x")
 
+def show_group_menu():
+    """โชว์ป๊อปอัพรายชื่อวงใต้ปุ่ม 'ศิลปิน' """
+    global _group_popup
+    # ถ้าเปิดอยู่แล้วให้ปิด
+    if _group_popup and _group_popup.winfo_exists():
+        _group_popup.destroy()
+        _group_popup = None
+        return
+
+    _group_popup = ctk.CTkToplevel(main)
+    _group_popup.overrideredirect(True)         # ไม่มีกรอบ
+    _group_popup.attributes("-topmost", True)   # โผล่บนสุดช่วงแรก
+    _group_popup.configure(fg_color="white")
+
+    # ตำแหน่ง: ใต้ปุ่มศิลปินพอดี ๆ
+    _group_popup.update_idletasks()
+    bx = btn_artist.winfo_rootx()
+    by = btn_artist.winfo_rooty() + btn_artist.winfo_height()
+    _group_popup.geometry(f"+{bx}+{by}")
+
+    # กล่อง + รายชื่อแบบเลื่อน
+    shell = ctk.CTkFrame(_group_popup, fg_color="white", corner_radius=10)
+    shell.pack(padx=6, pady=6, fill="both", expand=True)
+
+    lst = ctk.CTkScrollableFrame(shell, fg_color="white", corner_radius=8, width=220, height=260)
+    lst.pack(padx=8, pady=8, fill="both", expand=True)
+
+    for g in _groups_source():
+        ctk.CTkButton(
+            lst, text=g, fg_color="#b868e6", hover_color="#9a79f7",
+            font=("Mitr", 16), command=lambda name=g: _pick_group(name)
+        ).pack(fill="x", padx=4, pady=4)
+
+    # ปิดเมื่อโฟกัสหลุด / กด ESC
+    def _close(_=None):
+        try:
+            _group_popup.destroy()
+        except Exception:
+            pass
+    _group_popup.bind("<FocusOut>", _close)
+    _group_popup.bind("<Escape>", _close)
+    _group_popup.focus_force()
+    
 # โลโก้
 logo_path = r"C:\Python\project\LOGOproject.png"  
 logo_ctk  = ctk.CTkImage(light_image=Image.open(logo_path),
@@ -254,7 +297,7 @@ ctk.CTkLabel(hearder, image=logo_ctk, text="", fg_color="transparent",
 
 # เมนู
 btn_artist = ctk.CTkButton(hearder, text="ศิลปิน",     fg_color="#b868e6", 
-                          hover_color="#9a79f7", font=("Mitr", 20))
+                          hover_color="#9a79f7", font=("Mitr", 20),command=show_group_menu)
 btn_artist.pack(side="left", padx=(0, 110))
 
 btn_about  = ctk.CTkButton(hearder, text="เกี่ยวกับเรา", fg_color="#b868e6", 
@@ -304,7 +347,9 @@ cart_badge.place(relx=1.0, rely=0.0, x=-(BADGE_D//2 - 4), y=2, anchor="ne")
 
 # โปรไฟล์ 
 def open_profile():
-    print("เปิดหน้าโปรไฟล์…")   # TODO: ใส่โค้ดเปิดหน้าโปรไฟล์จริง
+    arg = [sys.executable, r"C:\Python\project\page\profile_show_user.py"]
+    p = subprocess.Popen(arg)
+    main.after(800, main.destroy)
 
 btn_profile = ctk.CTkButton(hearder, text="โปรไฟล์", fg_color="#b868e6", 
                            hover_color="#9a79f7", font=("Mitr", 20),
@@ -336,6 +381,29 @@ def change_group(value):
     current_group.set(value)
     refresh_content(search.get())
  
+# ---- รายชื่อวงจาก DB ถ้าไม่มีใช้ค่าคงที่ ----
+def _groups_source():
+    try:
+        gs = get_group()
+        return gs if gs else GROUPS
+    except Exception:
+        return GROUPS
+
+_group_popup = None
+
+def _pick_group(name: str):
+    # sync กับ segmented button ถ้ามี
+    try:
+        taps.set(name)
+    except Exception:
+        pass
+    change_group(name)               # ตั้งค่ากลุ่มปัจจุบัน
+    refresh_content(search.get())    # รีเฟรชตามคำค้น (ถ้ามี)
+    global _group_popup
+    if _group_popup and _group_popup.winfo_exists():
+        _group_popup.destroy()
+        _group_popup = None
+
 # สร้างปุ่มแท็บเลือกศิลปิน
 taps = ctk.CTkSegmentedButton(
     tap_artist,values=GROUPS,command=change_group,fg_color="#dac5ff",selected_color="#b868e6",
@@ -585,7 +653,7 @@ def open_cart_window():
     win.protocol("WM_DELETE_WINDOW", _close)
     win.bind("<Escape>", lambda e: _close())
 
-    # ---------- UI ภายใน ----------
+    # ui ตะกร้า
     shell = ctk.CTkFrame(win, fg_color="#f3ecff", corner_radius=20)
     shell.pack(fill="both", expand=True, padx=14, pady=14)
 

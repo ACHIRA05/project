@@ -137,12 +137,9 @@ buttons.pack(fill="x", padx=28, pady=(8, 0))
 buttons.grid_columnconfigure((0, 1), weight=1)
 
 def back_to_login():
-    reopen_full = _fullscreen_state["value"]
-    forgot.destroy()
     args = [sys.executable, r"C:\Python\project\page\login.py"]
-    if not reopen_full:
-        args.append("--windowed")
-    subprocess.Popen(args)
+    p = subprocess.Popen(args)
+    forgot.after(1500, forgot.destroy)
 
 def reset_password():
     u = user_entry.get().strip()

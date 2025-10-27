@@ -152,13 +152,15 @@ links.pack(fill="x", padx=28, pady=(8, 0))
 
 def _go_register():
     args = [sys.executable, r"C:\Python\project\page\register.py"]
-    if not _fullscreen_state["value"]:
-        args.append("--windowed")
-    Login.destroy()
-    subprocess.Popen(args)
+    p = subprocess.Popen(args)
+    Login.after(1500, Login.destroy)
+
+
+    
 def _go_forgot():
-    Login.destroy()
-    subprocess.Popen([sys.executable, r"C:\Python\project\page\forgot.py"])
+    args = [sys.executable, r"C:\Python\project\page\forgot.py"]
+    p = subprocess.Popen(args)
+    Login.after(1500, Login.destroy)
 
 ctk.CTkButton(links, text="ลงทะเบียน", corner_radius=18,
               fg_color="white", hover_color=BG_SOFT, text_color=PURPLE_PRIMARY,
@@ -180,9 +182,9 @@ def on_login():
     c.execute("SELECT id FROM users WHERE username=? AND password=?", (u, p))
     row = c.fetchone(); conn.close()
     if row:
-        messagebox.showinfo("เข้าสู่ระบบ", f"ยินดีต้อนรับ, {u}")
-        Login.destroy()
-        subprocess.Popen([sys.executable, r"C:\Python\project\page\main.py",u])
+        arg = [sys.executable, r"C:\Python\project\page\main.py"]
+        p = subprocess.Popen(arg)
+        Login.after(1500, Login.destroy)
     else:
         messagebox.showwarning("ผิดพลาด", "ไม่มี Username/Password หรือรหัสผ่านไม่ถูกต้อง")
 

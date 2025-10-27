@@ -5,7 +5,7 @@ import tkinter as tk
 from PIL import Image, ImageDraw
 import os, sqlite3
 from io import BytesIO
-import sys
+import sys ,subprocess
 
 # ---------------- Config / Path ----------------
 LOGIN_USERNAME = "achira"  # เปลี่ยนเป็นค่าจากระบบล็อกอินจริงได้
@@ -59,6 +59,7 @@ def get_user(username: str):
         "profile_image": row[7],
     }
 
+#อัพเดต username
 def upsert_user_username(old_username: str, new_username: str):
     """อัปเดต username (PK) หากเปลี่ยน"""
     if not new_username or new_username == old_username:
@@ -246,11 +247,14 @@ def on_save():
     form_state["pending_avatar_blob"] = None
     messagebox.showinfo("บันทึกแล้ว", "อัปเดตโปรไฟล์เรียบร้อย")
 
-def on_close():
-    profile_edit_user.destroy()
+def goback_page():
+    args = [sys.executable, r"C:\Python\project\page\profile_show_user.py"]
+    p = subprocess.Popen(args)
+    profile_edit_user.after(800, profile_edit_user.destroy)
+
 
 ctk.CTkButton(btns, text="บันทึก", fg_color=PURPLE_PRIMARY ,font=ctk.CTkFont(family="Mitr"), command=on_save).pack(side="left", padx=6)
-ctk.CTkButton(btns, text="ย้อนกลับ", fg_color="#888",font=ctk.CTkFont(family="Mitr"), command=on_close).pack(side="left", padx=6)
+ctk.CTkButton(btns, text="ย้อนกลับ", fg_color="#888",font=ctk.CTkFont(family="Mitr"), command=goback_page).pack(side="left", padx=6)
 
 # ตัวแปรเก็บขนาด panel
 MARGIN_W = 40

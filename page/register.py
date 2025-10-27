@@ -34,6 +34,7 @@ register.geometry("1000x620+300+60")
 register.minsize(900, 560)
 register.configure(fg_color=BG_SOFT)
 
+
 # ---------- Canvas + BG ----------
 canvas = tk.Canvas(register, highlightthickness=0, bd=0)
 canvas.pack(fill="both", expand=True)
@@ -203,8 +204,9 @@ def check():
         """, (u, p1, em, ph, img_bytes))
         conn.commit()
         messagebox.showinfo("สำเร็จ", "สมัครสมาชิกเรียบร้อย\nกำลังไปหน้าเข้าสู่ระบบ")
-        register.destroy()
-        subprocess.Popen([sys.executable, r"C:\Python\project\page\login.py"])  # ปรับพาธตามโปรเจกต์
+        args = [sys.executable, r"C:\Python\project\page\login.py"]
+        p = subprocess.Popen(args)
+        register.after(1500, register.destroy)
     except sqlite3.IntegrityError as e:
         msg = "ข้อมูลซ้ำ กรุณาเปลี่ยน "
         s = str(e)
@@ -220,13 +222,10 @@ def check():
         except: pass
 
 def backtolog():
-    reopen_full = _fullscreen_state["value"]
-    register.destroy()
     args = [sys.executable, r"C:\Python\project\page\login.py"]
-    if not reopen_full:
-        args.append("--windowed")
-    subprocess.Popen(args)
-
+    p = subprocess.Popen(args)
+    register.after(1500, register.destroy)
+    
 ctk.CTkButton(links_frame, text="ย้อนกลับ", text_color="white",
               height=46, corner_radius=22, fg_color="#B388FF",
               hover_color="#8D50F7", command=backtolog,font=ctk.CTkFont(family="Mitr"))\
