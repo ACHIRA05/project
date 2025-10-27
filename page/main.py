@@ -159,7 +159,6 @@ main.title("Purple Album — ร้านค้า")
 main.geometry("1000x600")
 main.configure(fg_color="#dac5ff")
 
-
 # ตัวแปรเก็บขนาด panel
 MARGIN_W = 40
 MARGIN_H = 80

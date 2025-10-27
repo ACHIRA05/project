@@ -1,44 +1,42 @@
-import sqlite3
-import os
+import os, sqlite3
 
-DB = "Userdata.db"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DB_PATH  = os.path.join(BASE_DIR, "database", "Userdata.db")
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-def fix_user_table():
-    con = sqlite3.connect(DB)
+def ensure_schema():
+    con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
-
-    # 1) รีเนมตารางเดิมเก็บไว้ก่อน
-    cur.execute("ALTER TABLE users RENAME TO users_old")
-
-    # 2) สร้างตารางใหม่ตามที่ต้องการ
+    # สร้างตาราง (ถ้ายังไม่มี)
     cur.execute("""
-        CREATE TABLE users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            first_name TEXT,
-            last_name TEXT,
-            gender TEXT,
-            birth_date TEXT,
-            email TEXT UNIQUE NOT NULL,
-            phone TEXT UNIQUE NOT NULL,
-            profile_image BLOB
+        CREATE TABLE IF NOT EXISTS users (
+            username      TEXT PRIMARY KEY
         )
     """)
+    # ดูคอลัมน์ปัจจุบัน
+    cur.execute("PRAGMA table_info(users)")
+    have = {r[1] for r in cur.fetchall()}
 
-    # 3) ย้ายข้อมูลจากตารางเก่า (map เฉพาะคอลัมน์ที่มี)
-    cur.execute("""
-        INSERT INTO users (id, username, password, email, phone, profile_image)
-        SELECT id, username, password, email, phone, profile_image
-        FROM users_old
-    """)
+    # เฉพาะคอลัมน์ที่เราต้องใช้ (แบบเบสิค)
+    required = {
+        "password":      "TEXT",  
+        "first_name":    "TEXT",
+        "last_name":     "TEXT",
+        "gender":        "TEXT",  
+        "birth_date":    "TEXT",  
+        "age":           "INTEGER",
+        "email":         "TEXT",
+        "phone":         "iNTEGER",
+        "profile_image": "BLOB"
+    }
 
-    # 4) ลบทิ้งตารางเก่า
-    cur.execute("DROP TABLE users_old")
+    for col, typ in required.items():
+        if col not in have:
+            cur.execute(f"ALTER TABLE users ADD COLUMN {col} {typ}")
 
     con.commit()
     con.close()
-    print("✅ users table fixed successfully!")
 
 if __name__ == "__main__":
-    fix_user_table()
+    ensure_schema()
+    print("users table is ready.")
