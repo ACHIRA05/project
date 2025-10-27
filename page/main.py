@@ -649,6 +649,15 @@ def open_cart_window():
             pass
         win.destroy()
 
+    def _open_payment():
+        try:
+            win.grab_release()
+        except Exception:
+            pass
+        win.destroy()
+        args = [sys.executable, os.path.join(BASE_DIR, "page", "payment.py"), login_username]
+        subprocess.Popen(args)
+
     # กดกากบาทหรือกด ESC เพื่อปิด
     win.protocol("WM_DELETE_WINDOW", _close)
     win.bind("<Escape>", lambda e: _close())
@@ -718,7 +727,14 @@ def open_cart_window():
     ctk.CTkButton(left, text="ล้างตะกร้า", fg_color="#ccc", text_color="black", font=("Mitr", 16),
                   command=lambda: (sell_db.clear(login_username), _close(), open_cart_window(), update_cart_badge())
     ).pack(side="left", padx=(0,6))
-    ctk.CTkButton(left, text="ยืนยันการสั้งซื้อ", font=("Mitr", 16)).pack(side="left")
+    ctk.CTkButton(
+        left,
+        text="ยืนยันการสั่งซื้อ",
+        font=("Mitr", 16),
+        fg_color="#7B66E3",
+        hover_color="#6A5AD9",
+        command=_open_payment,
+    ).pack(side="left")
     
 # โหลดหน้าวงแรกตอนเปิดแอป
 def refresh_content(keyword: str = ""):
