@@ -9,22 +9,6 @@ from io import BytesIO
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "database", "Userdata.db"))
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-# ---------- สร้างตารางให้พร้อม ----------
-conn = sqlite3.connect(DB_PATH)
-c = conn.cursor()
-c.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    phone TEXT UNIQUE NOT NULL,
-    profile_image BLOB
-)
-""")
-conn.commit()
-conn.close()
-
 # ---------- THEME ----------
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -36,10 +20,10 @@ RESIZE_DELAY = 60
 PANEL_SUPERSAMPLE = 2
 SIZE_STEP = 2
 
+# ---------- Resize handling ----------
 _pending_job = None
 _last_bg_size = (0, 0)
 _last_panel_size = (0, 0)
-
 _bg_cache = {}
 _panel_cache = {}
 
@@ -59,10 +43,12 @@ bg_raw = Image.open(BG_PATH)
 bg_img = ImageTk.PhotoImage(bg_raw.resize((1000, 620)))
 bg_id = canvas.create_image(0, 0, image=bg_img, anchor="nw")
 
+#ทำให้ภาพพื้นหลังยืดหยุ่นตามขนาดหน้าต่าง
 def _rounded_size(w, h):
     return (max(1, (w // SIZE_STEP) * SIZE_STEP),
             max(1, (h // SIZE_STEP) * SIZE_STEP))
 
+#ภาพพื้นหลังยืดหยุ่น
 def resize_bg(w, h, final=False):
     global _last_bg_size
     w, h = _rounded_size(w, h)
@@ -83,6 +69,7 @@ def resize_bg(w, h, final=False):
 
     _last_bg_size = (w, h)
 
+#รูปแบบแผงพื้นหลัง
 def make_panel_img(w, h, radius=28, border=12, outer="#BFAEF7", inner=BG_SOFT):
     s = PANEL_SUPERSAMPLE
     W, H = w * s, h * s
