@@ -6,7 +6,12 @@ import os, sqlite3,sys ,subprocess
 from io import BytesIO
 
 # -------- CONFIG --------
-LOGIN_USERNAME = "achira"
+#รับ username จาก login.py
+if len( sys.argv ) > 1: 
+    username = sys.argv[1] 
+else: 
+    username = None
+#LOGIN_USERNAME = "achira"
 BASE_DIR  = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DB_PATH   = os.path.join(BASE_DIR, "database", "Userdata.db")
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
@@ -64,7 +69,7 @@ frame.pack(fill="both", expand=True, padx=40, pady=40)
 ctk.CTkLabel(frame, text="โปรไฟล์ผู้ใช้", font=("Mitr", 40, "bold"), text_color=TEXT).pack(pady=(30,10))
 
 # โหลดข้อมูล
-user = get_user(LOGIN_USERNAME)
+user = get_user(username)
 if not user:
     messagebox.showerror("Error", "ไม่พบข้อมูลผู้ใช้")
     profile_show_user.destroy()
@@ -102,16 +107,22 @@ add_row("อีเมล", user[5])
 add_row("เบอร์โทร", user[6])
 
 def back_page():
-    agr = [sys.executable, r"C:\Python\project\page\main.py"]
-    p = subprocess.Popen(agr)
+    if not username:
+        profile_show_user.after(0, profile_show_user.destroy)
+        return
+    args = [sys.executable, os.path.join(BASE_DIR, "page", "main.py"), username]
+    subprocess.Popen(args)
     profile_show_user.after(800, profile_show_user.destroy)
     
 # ปุ่มด้านล่าง
 btns = ctk.CTkFrame(frame, fg_color=BG)
 btns.pack()
 def go_edit_page():
-    args = [sys.executable, r"C:\Python\project\page\profile_edit_user.py"]
-    p = subprocess.Popen(args)
+    if not username:
+        messagebox.showerror("โปรไฟล์", "ไม่พบผู้ใช้สำหรับแก้ไข")
+        return
+    args = [sys.executable, os.path.join(BASE_DIR, "page", "profile_edit_user.py"), username]
+    subprocess.Popen(args)
     profile_show_user.after(800, profile_show_user.destroy)
 
 ctk.CTkButton(btns, text="กลับ", fg_color="#888", width=200,font=ctk.CTkFont(family="Mitr"),command=back_page).pack(side="left", padx=10, pady=10)

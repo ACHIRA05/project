@@ -13,7 +13,13 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SELL_DB_PATH = os.path.join(BASE_DIR, "database", "Sell_item.db")
 ALBUM_DB_PATH = os.path.join(BASE_DIR, "database", "album_data.db")
 QR_IMAGE_PATH = os.path.join(BASE_DIR, "qrcode.jpg")
-LOGIN_USERNAME = sys.argv[1] if len(sys.argv) > 1 else "achira"
+
+#รับ username จาก login.py
+if len( sys.argv ) > 1: 
+    username = sys.argv[1] 
+else: 
+    username = None
+#LOGIN_USERNAME = sys.argv[1] if len(sys.argv) > 1 else "achira"
 
 # --- ธีมสำหรับ CustomTkinter ---
 ctk.set_appearance_mode("light")
@@ -302,7 +308,7 @@ def load_qr_image() -> None:
 def refresh_data() -> None:
     """โหลดข้อมูลใหม่และรีเฟรชหน้าจอ"""
     global cart_items, cart_calc
-    cart_items = fetch_cart_items(LOGIN_USERNAME)
+    cart_items = fetch_cart_items(username)
     cart_calc = compute_pricing(cart_items) if cart_items else {
         "subtotal": 0,
         "total_qty": 0,
@@ -319,7 +325,7 @@ def refresh_data() -> None:
 def open_history_app() -> None:
     """เปิดหน้าประวัติการสั่งซื้อ"""
     script_path = os.path.join(BASE_DIR, "page", "history.py")
-    args = [sys.executable, script_path, LOGIN_USERNAME]
+    args = [sys.executable, script_path, username]
     subprocess.Popen(args)
 
 
@@ -329,7 +335,7 @@ def on_confirm() -> None:
         return
     confirm_btn.configure(state="disabled")
     try:
-        order_id = record_order(LOGIN_USERNAME, cart_items, cart_calc["total"])
+        order_id = record_order(username, cart_items, cart_calc["total"])
     except Exception as exc:
         confirm_btn.configure(state="normal")
         messagebox.showerror(title="เกิดข้อผิดพลาด", message=str(exc))

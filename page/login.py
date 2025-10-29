@@ -4,8 +4,10 @@ from PIL import Image, ImageDraw, ImageTk
 import tkinter as tk
 import subprocess, sys, os, sqlite3
 
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 # ---------- DB ----------
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "database", "Userdata.db"))
+DB_PATH = os.path.join(BASE_DIR, "database", "Userdata.db")
 
 # ---------- Theme ----------
 ctk.set_appearance_mode("light")
@@ -15,7 +17,7 @@ PURPLE_ACCENT  = "#B388FF"
 BG_SOFT        = "#F7F5FF"
 TEXT_DARK      = "#2F2A44"
 
-#เพิ่มความหน่วงเวลาเวลาเปลี่ยนขนาดหน้าต่าง (มิลลิวินาที)
+#เพิ่มความหน่วงเวลาเวลาเปลี่ยนขนาดหน้าต่าง
 RESIZE_DELAY = 60
 PANEL_SUPERSAMPLE = 2
 SIZE_STEP = 2
@@ -182,9 +184,9 @@ def on_login():
     c.execute("SELECT id FROM users WHERE username=? AND password=?", (u, p))
     row = c.fetchone(); conn.close()
     if row:
-        arg = [sys.executable, r"C:\Python\project\page\main.py"]
-        p = subprocess.Popen(arg)
-        Login.after(1500, Login.destroy)
+        main_script = os.path.join(BASE_DIR, "page", "main.py")
+        subprocess.Popen([sys.executable, main_script, u])
+        Login.after(800, Login.destroy)
     else:
         messagebox.showwarning("ผิดพลาด", "ไม่มี Username/Password หรือรหัสผ่านไม่ถูกต้อง")
 

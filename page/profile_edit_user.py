@@ -8,7 +8,12 @@ from io import BytesIO
 import sys ,subprocess
 
 # ---------------- Config / Path ----------------
-LOGIN_USERNAME = "achira"  # เปลี่ยนเป็นค่าจากระบบล็อกอินจริงได้
+#รับ username จาก login.py
+if len( sys.argv ) > 1: 
+    username = sys.argv[1] 
+else: 
+    username = None
+#LOGIN_USERNAME = "achira"
 BASE_DIR  = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DB_PATH   = os.path.join(BASE_DIR, "database", "Userdata.db")
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
@@ -146,7 +151,7 @@ left  = ctk.CTkFrame(body, fg_color="white"); left.pack(side="left", fill="y", p
 right = ctk.CTkFrame(body, fg_color="white"); right.pack(side="left", fill="both", expand=True, padx=(8, 16), pady=16)
 
 # ------- Load user -------
-user = get_user(LOGIN_USERNAME)
+user = get_user(username)
 
 # Avatar
 avatar_img = blob_to_ctkimage(user["profile_image"], size=170)
@@ -212,10 +217,10 @@ def reload_form(username: str):
     form_state["pending_avatar_blob"] = None
 
 def on_reset():
-    reload_form(LOGIN_USERNAME)
+    reload_form(username)
 
 def on_save():
-    global LOGIN_USERNAME
+    global username
     new_username = entry_username.get().strip()
     data = {
         "first_name": entry_first.get().strip(),
@@ -232,24 +237,27 @@ def on_save():
         return
 
     # เปลี่ยน username ถ้าแก้
-    old_username = LOGIN_USERNAME
-    LOGIN_USERNAME = upsert_user_username(old_username, new_username)
+    old_username = username
+    username = upsert_user_username(old_username, new_username)
 
     # จัดการรูป
     avatar_blob = form_state["pending_avatar_blob"]
     if avatar_blob == b"":  # ลบรูป
         con = db_conn(); cur = con.cursor()
-        cur.execute("UPDATE users SET profile_image=NULL WHERE username=?", (LOGIN_USERNAME,))
+        cur.execute("UPDATE users SET profile_image=NULL WHERE username=?", (username,))
         con.commit(); con.close()
         avatar_blob = None
 
-    update_user(LOGIN_USERNAME, data, avatar_blob)
+    update_user(username, data, avatar_blob)
     form_state["pending_avatar_blob"] = None
     messagebox.showinfo("บันทึกแล้ว", "อัปเดตโปรไฟล์เรียบร้อย")
 
 def goback_page():
-    args = [sys.executable, r"C:\Python\project\page\profile_show_user.py"]
-    p = subprocess.Popen(args)
+    if not username:
+        messagebox.showerror("โปรไฟล์", "ไม่พบผู้ใช้งานสำหรับกลับไปดูโปรไฟล์")
+        return
+    args = [sys.executable, os.path.join(BASE_DIR, "page", "profile_show_user.py"), username]
+    subprocess.Popen(args)
     profile_edit_user.after(800, profile_edit_user.destroy)
 
 

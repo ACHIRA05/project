@@ -16,7 +16,12 @@ ALBUM_DB_PATH = os.path.join(PROJECT_ROOT, "database", "album_data.db")
 
 sell_db.init(sell_db_path=SELL_DB_PATH, album_db_path=ALBUM_DB_PATH)
 
-LOGIN_USERNAME = sys.argv[1] if len(sys.argv) > 1 else "achira"
+#รับ username จาก login.py
+if len( sys.argv ) > 1: 
+    username = sys.argv[1] 
+else: 
+    username = None
+#LOGIN_USERNAME = sys.argv[1] if len(sys.argv) > 1 else "achira"
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -103,7 +108,7 @@ load_placeholder._cache = {}
 
 # --- จัดการข้อมูล ---
 def refresh_history() -> List[Dict]:
-    orders = sell_db.order_history(LOGIN_USERNAME)
+    orders = sell_db.order_history(username)
     render_history(orders)
     return orders
 
@@ -175,8 +180,11 @@ row = ctk.CTkFrame(header, fg_color="transparent")
 row.pack(fill="x")
 
 def back_main():
-    arg = [sys.executable,r"C:\Python\project\page\main.py"]
-    p = subprocess.Popen(arg)
+    if not username:
+        history_win.after(0, history_win.destroy)
+        return
+    main_script = os.path.join(PROJECT_ROOT, "page", "main.py")
+    subprocess.Popen([sys.executable, main_script, username])
     history_win.after(800, history_win.destroy)
 
 ctk.CTkLabel(row, text="ประวัติการสั่งซื้อ", font=("Mitr", 24, "bold")).pack(side="left")

@@ -2,6 +2,7 @@
 from PIL import Image , ImageOps
 import os, sqlite3, io , sys
 import tkinter as tk
+from tkinter import messagebox
 import glob
 import os, sys ,subprocess
 
@@ -37,14 +38,14 @@ ALBUM_DATA   = os.path.join(BASE_DIR, "database", "album_data.db")
 sell_db.init(sell_db_path=os.path.join(BASE_DIR, "database", "Sell_item.db"),
              album_db_path=ALBUM_DATA)
 
-# รับ username จาก login.py
-# #if len( sys.argv ) > 1: 
-    # login_username = sys.argv[1] 
-#else: 
-    # login_username = None
+#รับ username จาก login.py
+if len( sys.argv ) > 1: 
+    username = sys.argv[1] 
+else: 
+    username = None
 
 # โหมด dev: ตั้ง username ไว้ชั่วคราว 
-login_username = "achira"
+#login_username = "achira"
 
 # รายชื่อวง
 GROUPS = [ "BTS","BLACKPINK","SEVENTEEN","AESPA","ENHYPEN","TWICE"]
@@ -250,10 +251,13 @@ ctk.CTkLabel(hearder, image=logo_ctk, text="", fg_color="transparent",
 
 # เมนู
 
-#wxประวัติการสั่งซื้อ
+#ประวัติการสั่งซื้อ
 def open_history_window():
-    arg = [sys.executable,r"C:\Python\project\page\history.py"]
-    p = subprocess.Popen(arg)
+    if not username:
+        messagebox.showerror("ประวัติการสั่งซื้อ", "กรุณาเข้าสู่ระบบก่อนเปิดประวัติการสั่งซื้อ")
+        return
+    history_script = os.path.join(BASE_DIR, "page", "history.py")
+    subprocess.Popen([sys.executable, history_script, username])
     main.after(800, main.destroy)
 
 # ปุ่มประวัติการสั่งซื้อ
@@ -266,11 +270,11 @@ cart_badge_var = tk.StringVar(value="0")
 # อัปเดตเลขในตะกร้า
 def update_cart_badge():
     # ดึงจำนวนจาก DB แล้วใส่ใน badge
-    cart_badge_var.set(str(sell_db.count(login_username)))
+    cart_badge_var.set(str(sell_db.count(username)))
     # อัปเดตยอดในหน้าตะกร้า (ถ้ามี label อยู่)
     try:
         if cart_total_label.winfo_exists():
-            cart_total_label.configure(text=f"รวมทั้งหมด: {sell_db.total(login_username):,.0f} บาท")
+            cart_total_label.configure(text=f"รวมทั้งหมด: {sell_db.total(username):,.0f} บาท")
     except Exception:
         pass
     
@@ -308,8 +312,11 @@ btn_about.pack(side="left", padx=(0, 70))
 
 # โปรไฟล์ 
 def open_profile():
-    arg = [sys.executable, r"C:\Python\project\page\profile_show_user.py"]
-    p = subprocess.Popen(arg)
+    if not username:
+        messagebox.showerror("โปรไฟล์", "กรุณาเข้าสู่ระบบก่อนเปิดโปรไฟล์")
+        return
+    profile_script = os.path.join(BASE_DIR, "page", "profile_show_user.py")
+    subprocess.Popen([sys.executable, profile_script, username])
     main.after(800, main.destroy)
 
 btn_profile = ctk.CTkButton(hearder, text="โปรไฟล์", fg_color="#b868e6", 
@@ -318,7 +325,7 @@ btn_profile = ctk.CTkButton(hearder, text="โปรไฟล์", fg_color="#b8
 btn_profile.pack(side="left", pady=8)
 
 # รูปโปรไฟล์
-blob = get_profile_image_by_username(login_username)
+blob = get_profile_image_by_username(username)
 if blob:
     pil_img = blob_to_pil(blob)
 elif os.path.exists(DEFAULT_PROFILE_IMAGE):
@@ -519,7 +526,7 @@ def add_album_card(id_, title, price, stock, cover_path):
     ctk.CTkButton(
     card, text="เพิ่มลงตะกร้า", fg_color="#b868e6", hover_color="#9a79f7",
     font=("Mitr", 14),
-    command=lambda: (sell_db.add(login_username, id_, 1),update_cart_badge())
+    command=lambda: (sell_db.add(username, id_, 1),update_cart_badge())
 ).pack(side="right", padx=12, pady=12)
 
 
@@ -593,7 +600,7 @@ def open_cart_window():
         except Exception:
             pass
         win.destroy()
-        args = [sys.executable, os.path.join(BASE_DIR, "page", "payment.py"), login_username]
+        args = [sys.executable, os.path.join(BASE_DIR, "page", "payment.py"), username]
         subprocess.Popen(args)
 
     # กดกากบาทหรือกด ESC เพื่อปิด
@@ -620,7 +627,7 @@ def open_cart_window():
     body.pack(fill="both", expand=True, padx=14, pady=(0, 8))
 
     # รายการสินค้า
-    items = sell_db.items(login_username)
+    items = sell_db.items(username)
     if not items:
         ctk.CTkLabel(body, text="ยังไม่มีสินค้าในตะกร้า", text_color="gray", font=("Mitr", 16)).pack(pady=20)
     else:
@@ -638,17 +645,17 @@ def open_cart_window():
 
             ctrls = ctk.CTkFrame(row, fg_color="white"); ctrls.pack(side="right", padx=8, pady=8)
             ctk.CTkButton(ctrls, text="-", width=34,
-                          command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q-1),
+                          command=lambda a=album_id, q=qty: (sell_db.set_qty(username, a, q-1),
                                                              win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=2)
             ctk.CTkButton(ctrls, text="+", width=34,
-                          command=lambda a=album_id, q=qty: (sell_db.set_qty(login_username, a, q+1),
+                          command=lambda a=album_id, q=qty: (sell_db.set_qty(username, a, q+1),
                                                              win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=2)
             ctk.CTkButton(ctrls, text="ลบ", width=46, fg_color="#e86", hover_color="#d55",
-                          command=lambda a=album_id: (sell_db.remove(login_username, a),
+                          command=lambda a=album_id: (sell_db.remove(username, a),
                                                       win.destroy(), open_cart_window(), update_cart_badge())).pack(side="left", padx=6)
 
     # สรุปราคา
-    calc = sell_db.pricing(login_username)
+    calc = sell_db.pricing(username)
     footer = ctk.CTkFrame(shell, fg_color="transparent"); footer.pack(fill="x", padx=14, pady=(6, 14))
     right = ctk.CTkFrame(footer, fg_color="transparent"); right.pack(side="right")
     ctk.CTkLabel(right, text=f"สินค้ารวม: {calc['item_count']} ชิ้น", font=("Mitr", 14)).pack(anchor="e")
@@ -663,7 +670,7 @@ def open_cart_window():
 
     left = ctk.CTkFrame(footer, fg_color="transparent"); left.pack(side="left")
     ctk.CTkButton(left, text="ล้างตะกร้า", fg_color="#ccc", text_color="black", font=("Mitr", 16),
-                  command=lambda: (sell_db.clear(login_username), _close(), open_cart_window(), update_cart_badge())
+                  command=lambda: (sell_db.clear(username), _close(), open_cart_window(), update_cart_badge())
     ).pack(side="left", padx=(0,6))
     ctk.CTkButton(
         left,
