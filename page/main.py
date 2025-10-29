@@ -159,10 +159,6 @@ main.title("Purple Album — ร้านค้า")
 main.geometry("1000x600")
 main.configure(fg_color="#dac5ff")
 
-# ตัวแปรเก็บขนาด panel
-MARGIN_W = 40
-MARGIN_H = 80
-
 # จัดวาง panel
 def layout_panel(final=False):
     global _last_panel_size
@@ -171,8 +167,8 @@ def layout_panel(final=False):
     taps.update_idletasks()
     need_w = taps.winfo_reqwidth()
     need_h = taps.winfo_reqheight()
-    panel_w = max(min(int(w * 0.86), w - 40), need_w + MARGIN_W)
-    panel_h = max(min(int(h * 0.78), h - 40), need_h + MARGIN_H)
+    panel_w = max(min(int(w * 0.86), w - 40), need_w)
+    panel_h = max(min(int(h * 0.78), h - 40), need_h)
 
     PADDING_X = 80
     PADDING_Y = 120
@@ -232,7 +228,7 @@ def _on_escape_quit(event=None):
         main.quit()
     return "break"
 main.bind("<F11>", _toggle_fullscreen)
-main.bind("<Escape>", _on_escape_quit)
+main.bind("<Escape>", _on_escape_quit),_exit_fullscreen()
 
 # เริ่มในโหมด fullscreen 
 _force_full = "--start-fullscreen" in sys.argv

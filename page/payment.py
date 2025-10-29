@@ -3,10 +3,10 @@ import sqlite3
 import sys
 import subprocess
 from typing import Dict, List
-
 import customtkinter as ctk
 from PIL import Image, ImageOps
 from tkinter import messagebox
+import tkinter as tk
 
 # --- ตั้งค่าพื้นฐาน ---
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -22,6 +22,9 @@ PURPLE = "#7B66E3"
 BG = "#F7F5FF"
 TEXT_DARK = "#2F2A44"
 
+# --- Layout constants ---
+SUMMARY_WIDTH = 520   # ความกว้าง panel ด้านขวา (ลอง 420–520 ได้)
+QR_SIZE       = 270   # ขนาด QR (พิกเซลต่อด้าน)
 # --- ตัวแปรสถานะของหน้า ---
 items_cache: Dict[int, ctk.CTkImage] = {}
 placeholder_cache: Dict[tuple[int, int], ctk.CTkImage] = {}
@@ -287,7 +290,7 @@ def update_totals() -> None:
 
 def load_qr_image() -> None:
     """แสดง QR code สำหรับชำระเงิน"""
-    qr = load_image(QR_IMAGE_PATH, size=(180, 180))
+    qr = load_image(QR_IMAGE_PATH, size=(QR_SIZE, QR_SIZE))
     if qr:
         qr_label.configure(image=qr, text="")
         qr_label.image = qr
@@ -382,83 +385,174 @@ def open_success_dialog(order_id: int) -> None:
         height=40,
         command=lambda: (win.destroy(), payment.destroy()),
     ).pack(fill="x")
+    
+payment = ctk.CTk()
+payment.title("ชำระเงิน")
+payment.geometry("900x620")
+payment.configure(fg_color=PURPLE)
+shell = ctk.CTkFrame(payment, fg_color=BG, corner_radius=20)
+shell.pack(fill="both", padx=30, pady=10)
+header = ctk.CTkFrame(shell, fg_color="transparent")
+header.pack(fill="x", padx=20, pady=(20, 10))
 
+ctk.CTkLabel(header,text="ตรวจสอบคำสั่งซื้อ", font=("Mitr", 32, "bold"), text_color=TEXT_DARK).pack(anchor="w")
+ctk.CTkLabel(
+    header,
+    text="ตรวจสอบสินค้าและสแกน QR เพื่อชำระเงิน",
+    font=("Mitr", 16),
+    text_color="#5C5875",
+).pack(anchor="w")
 
-# --- สร้างหน้าจอหลัก ---
-def build_layout() -> None:
-    """ประกอบ UI หลักของหน้า"""
-    global payment, items_frame, qr_label, subtotal_var, discount_var, total_var, confirm_btn
+shell = ctk.CTkFrame(payment, fg_color=BG, corner_radius=20)
+shell.pack(fill="both", expand=True, padx=30, pady=(20,0))
+    
+content = ctk.CTkFrame(shell, fg_color="transparent")
+content.pack(fill="both", expand=True, padx=18, pady=4)
+content.grid_columnconfigure(0, weight=2, minsize=420)
+content.grid_columnconfigure(1, weight=3, minsize=SUMMARY_WIDTH)
+content.grid_rowconfigure(0, weight=1)
 
-    payment = ctk.CTk()
-    payment.title("ชำระเงิน")
-    payment.geometry("900x620")
-    payment.configure(fg_color=PURPLE)
+    # ให้ฝั่งซ้าย (รายการสินค้า) ยืดกินพื้นที่ที่เหลือทั้งหมด
+items_frame = ctk.CTkScrollableFrame(content, fg_color="white", corner_radius=16, width=460, height=420)
+items_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 16), pady=6)
 
-    shell = ctk.CTkFrame(payment, fg_color=BG, corner_radius=20)
-    shell.pack(fill="both", expand=True, padx=30, pady=26)
+# ให้ฝั่งขวากว้างขึ้นแบบคงที่ และเกาะขวาจริง ๆ
+summary = ctk.CTkFrame(content, fg_color="white", corner_radius=16, width=SUMMARY_WIDTH)
+summary.grid(row=0, column=1, sticky="nsew", padx=(16, 0), pady=6)
+summary.grid_propagate(False)
+summary.grid_columnconfigure(0, weight=1)
+summary.grid_rowconfigure(3, weight=1)
 
-    header = ctk.CTkFrame(shell, fg_color="transparent")
-    header.pack(fill="x", padx=20, pady=(20, 10))
-    ctk.CTkLabel(header, text="ตรวจสอบคำสั่งซื้อ", font=("Mitr", 32, "bold"), text_color=TEXT_DARK).pack(anchor="w")
-    ctk.CTkLabel(
-        header,
-        text="ตรวจสอบสินค้าและสแกน QR เพื่อชำระเงิน",
-        font=("Mitr", 16),
-        text_color="#5C5875",
-    ).pack(anchor="w")
+ctk.CTkLabel(summary, text="ชำระเงิน", font=("Mitr", 24, "bold"), text_color=TEXT_DARK).grid(
+    row=0, column=0, pady=(18, 4), padx=18, sticky="n"
+)
+ctk.CTkLabel(summary, text="สแกนเพื่อชำระ", font=("Mitr", 16), text_color="#555").grid(
+    row=1, column=0, padx=18, pady=(0, 6), sticky="n"
+)
 
-    content = ctk.CTkFrame(shell, fg_color="transparent")
-    content.pack(fill="both", expand=True, padx=18, pady=4)
+qr_label = ctk.CTkLabel(summary, text="")
+qr_label.grid(row=2, column=0, pady=12, padx=18, sticky="n")
 
-    items_frame = ctk.CTkScrollableFrame(content, fg_color="white", corner_radius=16, width=520, height=420)
-    items_frame.pack(side="left", fill="both", expand=True, padx=(0, 12), pady=6)
+subtotal_var = ctk.StringVar(value="0 บาท")
+discount_var = ctk.StringVar(value="0 บาท")
+total_var = ctk.StringVar(value="0 บาท")
 
-    summary = ctk.CTkFrame(content, fg_color="white", corner_radius=16, width=260)
-    summary.pack(side="right", fill="y", padx=(12, 0), pady=6)
+summary_box = ctk.CTkFrame(summary, fg_color=BG, corner_radius=14)
+summary_box.grid(row=3, column=0, sticky="nwe", padx=18, pady=(8, 14))
+summary_box.grid_columnconfigure(0, weight=1)
+add_summary_row(summary_box, "ยอดรวมสินค้า", subtotal_var)
+add_summary_row(summary_box, "ส่วนลด", discount_var)
+add_summary_row(summary_box, "ยอดที่ต้องชำระ", total_var, bold=True)
 
-    ctk.CTkLabel(summary, text="ชำระเงิน", font=("Mitr", 24, "bold"), text_color=TEXT_DARK).pack(pady=(18, 4))
-    ctk.CTkLabel(summary, text="สแกนเพื่อชำระ", font=("Mitr", 16), text_color="#555").pack()
+button_panel = ctk.CTkFrame(summary, fg_color="transparent")
+button_panel.grid(row=4, column=0, sticky="ew", padx=18, pady=(0, 18))
+button_panel.columnconfigure(0, weight=1)
 
-    qr_label = ctk.CTkLabel(summary, text="")
-    qr_label.pack(pady=12)
+confirm_btn = ctk.CTkButton(
+    button_panel,
+    text="ยืนยันการชำระเงิน",
+    font=("Mitr", 18),
+    fg_color=PURPLE,
+    height=48,
+    command=on_confirm,
+)
+confirm_btn.grid(row=0, column=0, sticky="ew")
 
-    subtotal_var = ctk.StringVar(value="0 บาท")
-    discount_var = ctk.StringVar(value="0 บาท")
-    total_var = ctk.StringVar(value="0 บาท")
+def back_main():
+    arg = [sys.executable,r"C:\Python\project\page\main.py"]
+    p = subprocess.Popen(arg)
+    payment.after(800, payment.destroy)
 
-    summary_box = ctk.CTkFrame(summary, fg_color=BG, corner_radius=14)
-    summary_box.pack(fill="x", padx=18, pady=(10, 18))
-    add_summary_row(summary_box, "ยอดรวมสินค้า", subtotal_var)
-    add_summary_row(summary_box, "ส่วนลด", discount_var)
-    add_summary_row(summary_box, "ยอดที่ต้องชำระ", total_var, bold=True)
+ctk.CTkButton(
+    button_panel,
+    text="กลับไปหน้าหลัก",
+    font=("Mitr", 18),
+    fg_color="#D5D2EE",
+    text_color=TEXT_DARK,
+    height=48,
+    command=back_main).grid(row=1, column=0, sticky="ew", pady=(10, 0))
 
-    confirm_btn = ctk.CTkButton(
-        summary,
-        text="ยืนยันการชำระเงิน",
-        font=("Mitr", 18, "bold"),
-        fg_color=PURPLE,
-        height=48,
-        command=on_confirm,
-    )
-    confirm_btn.pack(fill="x", padx=18, pady=(0, 12))
+# จัดวาง panel
+def layout_panel(final=False):
+    global _last_panel_size    
+    w = max(payment.winfo_width(),  400)
+    h = max(payment.winfo_height(), 300)
+    items_frame.update_idletasks()
+    need_w = items_frame.winfo_reqwidth()
+    need_h = items_frame.winfo_reqheight()
+    panel_w = max(min(int(w * 0.86), w - 40), need_w)
+    panel_h = max(min(int(h * 0.78), h - 40), need_h)
 
-    ctk.CTkButton(
-        summary,
-        text="กลับไปหน้าหลัก",
-        font=("Mitr", 16),
-        fg_color="#D5D2EE",
-        text_color=TEXT_DARK,
-        height=40,
-        command=payment.destroy,
-    ).pack(fill="x", padx=18, pady=(0, 18))
+    PADDING_X = 80
+    PADDING_Y = 120
 
+    inner_w = max(panel_w - PADDING_X, need_w)
+    inner_h = max(panel_h - PADDING_Y, need_h)
 
-# --- จุดเริ่มต้นของโปรแกรม ---
-def main() -> None:
-    build_layout()
-    refresh_data()
-    payment.mainloop()
+def build_layout():
+    layout_panel(final=True)
 
+# ---------- Fullscreen toggle (F11 / ESC) ----------
+_fullscreen_state = {"value": False, "geometry": None}
 
-if __name__ == "__main__":
-    main()
+def _apply_layout_later():
+    payment.after(20, lambda: layout_panel(final=True))
+
+def _enter_fullscreen():
+    if _fullscreen_state["value"]:
+        return
+    _fullscreen_state["value"] = True
+    _fullscreen_state["geometry"] = payment.winfo_geometry()
+    try:
+        payment.state("zoomed")
+    except tk.TclError:
+        pass
+    payment.attributes("-fullscreen", True)
+    payment.geometry(f"{payment.winfo_screenwidth()}x{payment.winfo_screenheight()}+0+0")
+    _apply_layout_later()
+
+def _leave_fullscreen():
+    if not _fullscreen_state["value"]:
+        return
+    _fullscreen_state["value"] = False
+    payment.attributes("-fullscreen", False)
+    try:
+        payment.state("normal")
+    except tk.TclError:
+        pass
+    if _fullscreen_state["geometry"]:
+        payment.geometry(_fullscreen_state["geometry"])
+    else:
+        payment.geometry("1000x600")
+    _apply_layout_later()
+
+def _toggle_fullscreen(event=None):
+    if _fullscreen_state["value"]:
+        _leave_fullscreen()
+    else:
+        _enter_fullscreen()
+    return "break"
+
+def _exit_fullscreen(event=None):
+    _leave_fullscreen()
+    return "break"
+
+def _on_escape_quit():
+    try:
+        payment.destroy()
+    except Exception:
+        payment.quit()
+    return "break"
+
+build_layout() 
+
+payment.bind("<F11>", _toggle_fullscreen)
+payment.bind("<Escape>", _exit_fullscreen)      
+payment.bind("<Control-q>", lambda e: _on_escape_quit())
+_force_full = "--start-fullscreen" in sys.argv
+_want_windowed = "--windowed" in sys.argv
+
+payment.after(0, _enter_fullscreen)
+
+refresh_data()
+payment.mainloop()

@@ -194,9 +194,6 @@ ctk.CTkButton(container, text="เข้าสู่ระบบ", text_color="w
               command=on_login,
               font=ctk.CTkFont(family="Mitr")).pack(pady=18, ipadx=16)
 
-# ---------- Layout (ให้ทุกอย่าง "อยู่ในกรอบ") ----------
-MARGIN_W = 40
-MARGIN_H = 80
 
 def layout_panel(final=False):
     global _last_panel_size
@@ -206,8 +203,8 @@ def layout_panel(final=False):
     container.update_idletasks()
     need_w = container.winfo_reqwidth()
     need_h = container.winfo_reqheight()
-    panel_w = max(min(int(w * 0.86), w - 40), need_w + MARGIN_W)
-    panel_h = max(min(int(h * 0.78), h - 40), need_h + MARGIN_H)
+    panel_w = max(min(int(w * 0.86), w - 40), need_w)
+    panel_h = max(min(int(h * 0.78), h - 40), need_h)
     panel_w, panel_h = _rounded_size(panel_w, panel_h)
     if (panel_w, panel_h) != _last_panel_size:
         key = (panel_w, panel_h)

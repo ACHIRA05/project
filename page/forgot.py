@@ -187,10 +187,6 @@ ctk.CTkButton(buttons, text="รีเซ็ตรหัสผ่าน", text_c
               command=reset_password,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=1, padx=4, sticky="w", ipadx=12)
 
-# ---------- Layout handling ----------
-MARGIN_W = 40
-MARGIN_H = 120
-
 def layout_panel(final=False):
     global _last_panel_size
 
@@ -203,8 +199,8 @@ def layout_panel(final=False):
     need_w = container.winfo_reqwidth()
     need_h = container.winfo_reqheight()
 
-    panel_w = max(min(int(w * 0.88), w - 40), need_w + MARGIN_W)
-    panel_h = max(min(int(h * 0.82), h - 40), need_h + MARGIN_H)
+    panel_w = max(min(int(w * 0.88), w - 40), need_w)
+    panel_h = max(min(int(h * 0.82), h - 40), need_h)
 
     panel_w, panel_h = _rounded_size(panel_w, panel_h)
     if (panel_w, panel_h) != _last_panel_size:

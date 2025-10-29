@@ -236,9 +236,7 @@ ctk.CTkButton(links_frame, text="สมัครสมาชิก", text_color=
               hover_color="#8D50F7", command=check,font=ctk.CTkFont(family="Mitr"))\
     .grid(row=0, column=1, padx=4, sticky="w", ipadx=12)
 
-# ---------- Layout handling ----------
-MARGIN_W = 60
-MARGIN_H = 120
+
 
 def layout_panel(final=False):
     global _last_panel_size
@@ -252,8 +250,8 @@ def layout_panel(final=False):
     need_w = container.winfo_reqwidth()
     need_h = container.winfo_reqheight()
 
-    panel_w = max(min(int(w * 0.9), w - 40), need_w + MARGIN_W)
-    panel_h = max(min(int(h * 0.84), h - 40), need_h + MARGIN_H)
+    panel_w = max(min(int(w * 0.9), w - 40), need_w)
+    panel_h = max(min(int(h * 0.84), h - 40), need_h )
 
     panel_w, panel_h = _rounded_size(panel_w, panel_h)
     if (panel_w, panel_h) != _last_panel_size:
