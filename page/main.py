@@ -250,18 +250,20 @@ logo_ctk  = ctk.CTkImage(light_image=Image.open(logo_path),
                          dark_image=Image.open(logo_path),
                          size=(85, 85))
 ctk.CTkLabel(hearder, image=logo_ctk, text="", fg_color="transparent",
-             font=ctk.CTkFont(family="Mitr")).pack(side="left", padx=(10, 30))
+             font=ctk.CTkFont(family="Mitr")).pack(side="left", padx=(10, 50))
 
 # เมนู
-btn_history = ctk.CTkButton(
-    hearder,
-    text="ประวัติการสั่งซื้อ",
-    fg_color="#b868e6",
-    hover_color="#9a79f7",
-    font=("Mitr", 20),
-    command=lambda: open_history_window(),
-)
-btn_history.pack(side="left", padx=(0, 110))
+
+#wxประวัติการสั่งซื้อ
+def open_history_window():
+    arg = [sys.executable,r"C:\Python\project\page\history.py"]
+    p = subprocess.Popen(arg)
+    main.after(800, main.destroy)
+
+# ปุ่มประวัติการสั่งซื้อ
+btn_history = ctk.CTkButton(hearder,text="ประวัติการสั่งซื้อ",fg_color="#b868e6",
+    hover_color="#9a79f7",font=("Mitr", 20),command=open_history_window)
+btn_history.pack(side="left", padx=(20, 90))
 
 # ตะกร้าสินค้า
 cart_badge_var = tk.StringVar(value="0")
@@ -283,7 +285,7 @@ btn_basket = ctk.CTkButton(
     fg_color="#b868e6", hover_color="#9a79f7", font=("Mitr", 20),
     command=lambda: (open_cart_window(), update_cart_badge())
 )
-btn_basket.pack(side="left", padx=(0,110))
+btn_basket.pack(side="left", padx=(0,90))
 
 # badge ตัวเลขเป็นลูกของปุ่ม (เกาะมุมขวาบนของปุ่ม)
 BADGE_D = 24
@@ -299,16 +301,14 @@ cart_badge.place(relx=1.0, rely=0.0, x=-(BADGE_D//2 - 4), y=2, anchor="ne")
 
 # ช่องค้นหา
 search = ctk.CTkEntry(hearder, placeholder_text="ค้นหา", width=330, height=40, fg_color="white", font=("Mitr", 14,))
-search.pack(side="left", padx=(0, 95), pady=8)
+search.pack(side="left", padx=(0, 90), pady=8)
 # ค้นหาแบบเรียลไทม์
 search.bind("<KeyRelease>", lambda e: refresh_content(search.get()))
 
+# ปุ่มเกี่ยวกับเรา
 btn_about  = ctk.CTkButton(hearder, text="เกี่ยวกับเรา", fg_color="#b868e6", 
                           hover_color="#9a79f7", font=("Mitr", 20))
-btn_about.pack(side="left", padx=(0, 110))
-
-
-
+btn_about.pack(side="left", padx=(0, 70))
 
 # โปรไฟล์ 
 def open_profile():
@@ -566,147 +566,7 @@ def load_albums_all(keyword: str):
     if not kw:
         load_albums_only("")
 
-# หน้าประวัติการสั่งซื้อ
-def open_history_window():
-    existing = getattr(main, "_history_win", None)
-    if existing and not existing.winfo_exists():
-        main._history_win = None
-        existing = None
-    if existing and existing.winfo_exists():
-        existing.lift()
-        existing.focus_force()
-        return
 
-    win = ctk.CTkToplevel(main)
-    main._history_win = win
-    win.title("ประวัติการสั่งซื้อ")
-    win.geometry("720x560+940+200")
-    win.configure(fg_color="#f3ecff")
-    win.transient(main)
-    win.grab_set()
-    win.lift()
-    win.focus_force()
-    win.attributes("-topmost", True)
-    win.after(200, lambda: win.attributes("-topmost", False))
-
-    def _close():
-        try:
-            win.grab_release()
-        except Exception:
-            pass
-        win.destroy()
-        try:
-            if getattr(main, "_history_win", None) == win:
-                main._history_win = None
-        except Exception:
-            main._history_win = None
-
-    win.protocol("WM_DELETE_WINDOW", _close)
-    win.bind("<Escape>", lambda e: _close())
-
-    history = sell_db.order_history(login_username)
-
-    shell = ctk.CTkFrame(win, fg_color="#f3ecff", corner_radius=20)
-    shell.pack(fill="both", expand=True, padx=14, pady=14)
-
-    header = ctk.CTkFrame(shell, fg_color="transparent")
-    header.pack(fill="x", padx=14, pady=(6, 8))
-
-    ctk.CTkLabel(header, text="ประวัติการสั่งซื้อ", font=("Mitr", 20, "bold")).pack(side="left")
-    ctk.CTkLabel(
-        header,
-        text=f"{len(history)} รายการ",
-        font=("Mitr", 14),
-        text_color="#6D6A86",
-    ).pack(side="right")
-
-    body = ctk.CTkScrollableFrame(shell, fg_color="white", corner_radius=14)
-    body.pack(fill="both", expand=True, padx=14, pady=(0, 8))
-
-    if not history:
-        ctk.CTkLabel(
-            body,
-            text="ยังไม่มีประวัติการสั่งซื้อ",
-            text_color="gray",
-            font=("Mitr", 16),
-        ).pack(pady=32)
-        return
-
-    for order in history:
-        card = ctk.CTkFrame(body, fg_color="#f7f5ff", corner_radius=14)
-        card.pack(fill="x", padx=10, pady=8)
-
-        head = ctk.CTkFrame(card, fg_color="transparent")
-        head.pack(fill="x", padx=14, pady=(12, 4))
-        ctk.CTkLabel(
-            head,
-            text=f"คำสั่งซื้อ #{order['order_id']}",
-            font=("Mitr", 18, "bold"),
-        ).pack(side="left")
-        ctk.CTkLabel(
-            head,
-            text=order["created_at"],
-            font=("Mitr", 14),
-            text_color="#6D6A86",
-        ).pack(side="right")
-
-        for item in order["items"]:
-            row = ctk.CTkFrame(card, fg_color="#f7f5ff")
-            row.pack(fill="x", padx=14, pady=4)
-
-            cover_real = resolve_cover_path(item.get("cover_path", ""))
-            img = load_image(cover_real, size=(56, 56)) if cover_real else None
-            if img:
-                img_lbl = ctk.CTkLabel(row, image=img, text="")
-                img_lbl.image = img
-                img_lbl.pack(side="left", padx=6, pady=6)
-            else:
-                ctk.CTkLabel(
-                    row,
-                    text="ไม่มีรูป",
-                    width=56,
-                    height=56,
-                    fg_color="#e0d8ff",
-                    text_color="#6D6A86",
-                    corner_radius=12,
-                ).pack(side="left", padx=6, pady=6)
-
-            info = ctk.CTkFrame(row, fg_color="#f7f5ff")
-            info.pack(side="left", fill="x", expand=True, padx=6)
-            ctk.CTkLabel(info, text=item["title"], font=("Mitr", 16)).pack(anchor="w")
-            sub_txt = f"{item['quantity']} ชิ้น x {item['price']:,.0f} บาท"
-            if item.get("group"):
-                sub_txt = f"{item['group']} • {sub_txt}"
-            ctk.CTkLabel(info, text=sub_txt, font=("Mitr", 14), text_color="#555").pack(anchor="w")
-
-        ctk.CTkLabel(
-            card,
-            text=f"ยอดรวม: {order['total']:,.0f} บาท",
-            font=("Mitr", 16, "bold"),
-            text_color="#2F2A44",
-        ).pack(anchor="e", padx=16, pady=(4, 12))
-
-        return
-
-    rows = qall("""
-        SELECT id, group_name, album_name, IFNULL(version,''), IFNULL(price,0),
-               IFNULL(stock,0), IFNULL(cover_path,'')
-        FROM albums
-        WHERE (group_name || ' ' || album_name || ' ' || IFNULL(version,'')) LIKE ? COLLATE NOCASE
-        ORDER BY group_name, id DESC
-    """, (f"%{kw}%",))
-
-    if not rows:
-        ctk.CTkLabel(album_area, text=f"ไม่พบผลลัพธ์สำหรับ “{kw}”", text_color="gray", font=("Mitr", 14)).pack(pady=10)
-        return
-
-    last_group = None
-    for id_, gname, name, ver, price, stock, cover in rows:
-        if gname != last_group:
-            add_section_header(gname)
-            last_group = gname
-        title = f"{name} ({ver})" if ver else name
-        add_album_card(id_, title, price, stock, cover)
         
 # เปิดหน้าตะกร้าสินค้า
 def open_cart_window():
